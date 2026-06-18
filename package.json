@@ -1,0 +1,38 @@
+{
+  "name": "skills-init",
+  "version": "0.1.0",
+  "description": "Scaffold portable agent skills into a project.",
+  "type": "module",
+  "bin": {
+    "skills-init": "./bin/skills-init.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "scripts/",
+    "skills/",
+    "profiles/",
+    "templates/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "npm run lint:skills && npm test && npm run pack:dry-run",
+    "lint:skills": "node scripts/lint-skills.js",
+    "pack:dry-run": "npm pack --dry-run",
+    "test": "node --test"
+  },
+  "keywords": [
+    "agents",
+    "skills",
+    "codex",
+    "claude",
+    "opencode",
+    "developer-tools"
+  ],
+  "author": "Ezra Apple",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

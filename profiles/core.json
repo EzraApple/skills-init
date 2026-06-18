@@ -1,0 +1,31 @@
+{
+  "name": "core",
+  "description": "Portable baseline for code review, skill authoring, and simplification.",
+  "skills": [
+    "adversarial-review",
+    "writing-skills",
+    "simplify"
+  ],
+  "toolLinks": [
+    {
+      "tool": "claude",
+      "dir": ".claude/skills",
+      "mode": "always"
+    },
+    {
+      "tool": "cursor",
+      "dir": ".cursor/skills",
+      "mode": "if-parent-exists"
+    },
+    {
+      "tool": "codex",
+      "dir": ".codex/skills",
+      "mode": "if-parent-exists"
+    },
+    {
+      "tool": "opencode",
+      "dir": ".opencode/skills",
+      "mode": "if-parent-exists"
+    }
+  ]
+}
