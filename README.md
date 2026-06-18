@@ -2,11 +2,11 @@
 
 Portable agent-skill scaffolding for new projects.
 
-This package installs a small default skill set into `.agents/skills` and links
-those skills into tool-specific skill folders such as `.claude/skills`. The
-package is intentionally data-driven: profiles list skills, link targets, and
-future setup steps so MCPs or tool-specific config can be added without
-rewriting the CLI.
+This package installs a small default skill set into `.agents/skills`, then
+symlinks tool-specific skill folders back to that source of truth. The package
+is intentionally data-driven: profiles list skills, link targets, and future
+setup steps so MCPs or tool-specific config can be added without rewriting the
+CLI.
 
 The external package/repo name is still provisional. If published as
 `skills-init`, use:
@@ -42,10 +42,17 @@ It creates:
     README.md
 ```
 
-By default, it also creates `.claude/skills/<skill>` symlinks into
-`.agents/skills/<skill>`. It links `.cursor/skills`, `.codex/skills`, and
-`.opencode/skills` only when those parent tool directories already exist, unless
-you pass `--all-tool-links`.
+By default, it also creates these symlinks for every installed skill:
+
+```text
+.claude/skills/<skill>   -> ../../.agents/skills/<skill>
+.cursor/skills/<skill>   -> ../../.agents/skills/<skill>
+.codex/skills/<skill>    -> ../../.agents/skills/<skill>
+.opencode/skills/<skill> -> ../../.agents/skills/<skill>
+```
+
+`.agents/skills` carries the actual context. Tool-specific skill directories are
+generated views over that shared source.
 
 ## Local Development
 
@@ -62,7 +69,6 @@ skills-init --list
 skills-init --dry-run
 skills-init --target .
 skills-init --target . --overwrite
-skills-init --target . --all-tool-links
 skills-init --target . --no-links
 skills-init --target . --copy-links
 ```

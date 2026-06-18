@@ -15,17 +15,17 @@
     {
       "tool": "cursor",
       "dir": ".cursor/skills",
-      "mode": "if-parent-exists"
+      "mode": "always"
     },
     {
       "tool": "codex",
       "dir": ".codex/skills",
-      "mode": "if-parent-exists"
+      "mode": "always"
     },
     {
       "tool": "opencode",
       "dir": ".opencode/skills",
-      "mode": "if-parent-exists"
+      "mode": "always"
     }
   ]
 }

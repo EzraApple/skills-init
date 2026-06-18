@@ -13,7 +13,7 @@ function makeTarget() {
   return mkdtempSync(join(tmpdir(), "skills-init-"));
 }
 
-test("installs core skills and default Claude links", () => {
+test("installs core skills and all default tool links", () => {
   const target = makeTarget();
 
   execFileSync(process.execPath, [binPath, "--target", target], {
@@ -22,8 +22,11 @@ test("installs core skills and default Claude links", () => {
 
   for (const skill of ["adversarial-review", "writing-skills", "simplify"]) {
     assert.ok(existsSync(join(target, ".agents", "skills", skill, "SKILL.md")));
-    const linkPath = join(target, ".claude", "skills", skill);
-    assert.equal(lstatSync(linkPath).isSymbolicLink(), true);
+
+    for (const toolDir of [".claude", ".cursor", ".codex", ".opencode"]) {
+      const linkPath = join(target, toolDir, "skills", skill);
+      assert.equal(lstatSync(linkPath).isSymbolicLink(), true);
+    }
   }
 
   assert.match(
