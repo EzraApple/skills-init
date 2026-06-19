@@ -20,16 +20,16 @@ agent surface sees the same guidance.
 
 ## Quick Start
 
-NPM package is coming next. Until then, run it directly from GitHub:
-
-```bash
-npx github:EzraApple/skills-init
-```
-
-After npm publish, the intended command is:
+Install the default skill pack in a repo:
 
 ```bash
 npx skills-init
+```
+
+Or preview the writes first:
+
+```bash
+npx skills-init --dry-run
 ```
 
 Useful options:
@@ -42,6 +42,10 @@ skills-init --target . --no-links
 skills-init --target . --copy-links
 skills-init --list
 ```
+
+Package: https://www.npmjs.com/package/skills-init
+
+Repo: https://github.com/EzraApple/skills-init
 
 ## What It Installs
 
