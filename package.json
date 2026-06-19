@@ -7,6 +7,7 @@
     "skills-init": "./bin/skills-init.js"
   },
   "files": [
+    "assets/",
     "bin/",
     "src/",
     "scripts/",
@@ -16,6 +17,14 @@
     "README.md",
     "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EzraApple/skills-init.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EzraApple/skills-init/issues"
+  },
+  "homepage": "https://github.com/EzraApple/skills-init#readme",
   "scripts": {
     "check": "npm run lint:skills && npm test && npm run pack:dry-run",
     "lint:skills": "node scripts/lint-skills.js",
