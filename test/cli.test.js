@@ -8,6 +8,17 @@ import { fileURLToPath } from "node:url";
 
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
 const binPath = join(packageRoot, "bin", "skills-init.js");
+const coreSkills = [
+  "outcome-first-workflows",
+  "trace-codebase",
+  "plan-changes",
+  "systematic-debugging",
+  "repo-automations",
+  "adversarial-review",
+  "interface-review",
+  "simplify",
+  "writing-skills",
+];
 
 function makeTarget() {
   return mkdtempSync(join(tmpdir(), "skills-init-"));
@@ -20,7 +31,7 @@ test("installs core skills and all default tool links", () => {
     encoding: "utf8",
   });
 
-  for (const skill of ["adversarial-review", "writing-skills", "simplify"]) {
+  for (const skill of coreSkills) {
     assert.ok(existsSync(join(target, ".agents", "skills", skill, "SKILL.md")));
 
     for (const toolDir of [".claude", ".cursor", ".codex", ".opencode"]) {
@@ -28,6 +39,12 @@ test("installs core skills and all default tool links", () => {
       assert.equal(lstatSync(linkPath).isSymbolicLink(), true);
     }
   }
+
+  assert.ok(
+    existsSync(
+      join(target, ".agents", "skills", "repo-automations", "TEMPLATE.md"),
+    ),
+  );
 
   assert.match(
     readFileSync(join(target, ".agents", "README.md"), "utf8"),

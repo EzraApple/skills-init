@@ -1,6 +1,6 @@
 {
   "name": "skills-init",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Bootstrap sensible default agent skills into any repo and wire them across Claude, Cursor, Codex, and OpenCode.",
   "type": "module",
   "bin": {

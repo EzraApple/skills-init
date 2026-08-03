@@ -55,7 +55,20 @@ Default profile: `core`
 .agents/
   README.md
   skills/
+    outcome-first-workflows/
+      SKILL.md
+    trace-codebase/
+      SKILL.md
+    plan-changes/
+      SKILL.md
+    systematic-debugging/
+      SKILL.md
+    repo-automations/
+      SKILL.md
+      TEMPLATE.md
     adversarial-review/
+      SKILL.md
+    interface-review/
       SKILL.md
     simplify/
       SKILL.md
@@ -76,6 +89,68 @@ added later without changing the core installer model.
 
 ## Included Skills
 
+### `outcome-first-workflows`
+
+Finish substantial work against an observable outcome, explicit constraints,
+and claim-matched evidence.
+
+Includes:
+
+- compact outcome, non-goal, and stopping-condition contracts;
+- witness selection for user flows, hidden state, code contracts, performance,
+  deployments, and external artifacts;
+- bounded parallel-work rules for runtimes that support it;
+- honest completion checks that distinguish activity from proof.
+
+### `trace-codebase`
+
+Map an unfamiliar subsystem from real code without producing an encyclopedia.
+
+Includes:
+
+- scope and entrypoint discovery;
+- representative data, control, state, and error-flow tracing;
+- selective history and provenance rules;
+- boundary maps, change seams, and a prioritized reading order.
+
+### `plan-changes`
+
+Turn broad implementation or refactor requests into the smallest
+decision-complete plan.
+
+Includes:
+
+- current-boundary and constraint discovery;
+- direct-versus-durable approach comparison;
+- explicit invariants and non-goals;
+- independently verifiable steps with claim-matched witnesses;
+- rollout, rollback, compatibility, and risk coverage when relevant.
+
+### `systematic-debugging`
+
+Prove root causes before proposing or implementing fixes.
+
+Includes:
+
+- exact symptom and reproduction framing;
+- backward causal tracing and falsifiable hypothesis ledgers;
+- precise root-cause standards;
+- smallest-owning-boundary fixes;
+- verification against the original failure surface.
+
+### `repo-automations`
+
+Route repository-owned scheduled, event-driven, webhook, and agent-run
+automations without imposing a specific scheduler or workflow platform.
+
+Includes:
+
+- a lightweight boundary between repo logic and runtime orchestration;
+- routing to repo-local, frontmatter-free automation playbooks;
+- judgment for choosing code, workflow configuration, or an agent playbook;
+- proportional testing, migration, and failure-layer guidance;
+- a small playbook template whose irrelevant sections should be deleted.
+
 ### `adversarial-review`
 
 High-scrutiny independent review for code, PRs, changed files, plans, or
@@ -93,6 +168,18 @@ Includes:
 - final report shape with verdict, action items, findings, and coverage.
 
 Use this when you want a skeptical second opinion, not a polite rubber stamp.
+
+### `interface-review`
+
+Caller-focused review for APIs, exported functions, service methods, hooks,
+component props, schemas, commands, events, and extension points.
+
+Includes:
+
+- duplicate-boundary and hidden-side-effect detection;
+- mode, option, and domain-input shape review;
+- provider and implementation-leakage checks;
+- concrete replacement shapes with compatibility and migration notes.
 
 ### `writing-skills`
 
@@ -174,6 +261,19 @@ npm run check
 
 This validates skill frontmatter, runs installer tests, and verifies package
 contents with `npm pack --dry-run`.
+
+## Releasing
+
+Releases publish from GitHub Actions through npm trusted publishing. The tag
+must match the version in `package.json`.
+
+```bash
+npm version patch
+git push origin main --follow-tags
+```
+
+The npm trusted publisher is scoped to `EzraApple/skills-init` and
+`.github/workflows/publish.yml`; no npm token is stored in GitHub.
 
 ## Extending
 

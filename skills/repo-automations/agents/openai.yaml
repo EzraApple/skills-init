@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Automations"
+  short_description: "Route and maintain repository automations"
+  default_prompt: "Use $repo-automations to add or debug this repository automation."

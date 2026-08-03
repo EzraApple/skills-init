@@ -1,10 +1,16 @@
 {
   "name": "core",
-  "description": "Portable baseline for code review, skill authoring, and simplification.",
+  "description": "Portable baseline for outcome-driven implementation, codebase tracing, debugging, planning, repo automation, review, simplification, and skill authoring.",
   "skills": [
+    "outcome-first-workflows",
+    "trace-codebase",
+    "plan-changes",
+    "systematic-debugging",
+    "repo-automations",
     "adversarial-review",
-    "writing-skills",
-    "simplify"
+    "interface-review",
+    "simplify",
+    "writing-skills"
   ],
   "toolLinks": [
     {
