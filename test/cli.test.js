@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, lstatSync, mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -46,10 +46,8 @@ test("installs core skills and all default tool links", () => {
     ),
   );
 
-  assert.match(
-    readFileSync(join(target, ".agents", "README.md"), "utf8"),
-    /source of truth/,
-  );
+  assert.equal(existsSync(join(target, ".agents", "README.md")), false);
+  assert.equal(existsSync(join(target, ".agents", "mcps")), false);
 });
 
 test("is idempotent without overwrite", () => {

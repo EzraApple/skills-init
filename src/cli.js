@@ -13,7 +13,12 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const defaultProfile = "core";
+const toolSkillDirs = [
+  ".claude/skills",
+  ".cursor/skills",
+  ".codex/skills",
+  ".opencode/skills",
+];
 
 class UsageError extends Error {
   constructor(message) {
@@ -34,13 +39,11 @@ Usage:
 
 Options:
   --target <dir>       Project directory to scaffold. Defaults to cwd.
-  --profile <name>     Profile from profiles/<name>.json. Defaults to core.
   --overwrite          Replace existing installed skill directories.
   --dry-run            Print planned writes without changing files.
   --no-links           Copy skills into .agents only; do not create tool links.
   --copy-links         Copy skills into tool folders instead of symlinking.
-  --all-tool-links     Create every link target listed in the profile.
-  --list               Print available profiles and their skills.
+  --list               Print included skills.
   --help               Show this help.
   --version            Print package version.
 `);
@@ -48,12 +51,10 @@ Options:
 
 function parseArgs(argv) {
   const options = {
-    allToolLinks: false,
     copyLinks: false,
     dryRun: false,
     links: true,
     overwrite: false,
-    profile: defaultProfile,
     target: process.cwd(),
   };
 
@@ -72,13 +73,7 @@ function parseArgs(argv) {
         throw new UsageError("--target requires a directory");
       }
       options.target = value;
-    } else if (arg === "--profile") {
-      const value = argv[++index];
-      if (!value) {
-        throw new UsageError("--profile requires a name");
-      }
-      options.profile = value;
-    } else if (arg === "--overwrite" || arg === "--force") {
+    } else if (arg === "--overwrite") {
       options.overwrite = true;
     } else if (arg === "--dry-run") {
       options.dryRun = true;
@@ -86,8 +81,6 @@ function parseArgs(argv) {
       options.links = false;
     } else if (arg === "--copy-links") {
       options.copyLinks = true;
-    } else if (arg === "--all-tool-links") {
-      options.allToolLinks = true;
     } else {
       throw new UsageError(`Unknown option: ${arg}`);
     }
@@ -96,22 +89,11 @@ function parseArgs(argv) {
   return options;
 }
 
-function availableProfiles() {
-  const profilesDir = join(packageRoot, "profiles");
-  return readdirSync(profilesDir)
-    .filter((name) => name.endsWith(".json"))
-    .map((name) => name.slice(0, -".json".length))
+function includedSkills() {
+  return readdirSync(join(packageRoot, "skills"), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
     .sort();
-}
-
-function loadProfile(profileName) {
-  const profilePath = join(packageRoot, "profiles", `${profileName}.json`);
-  if (!existsSync(profilePath)) {
-    throw new UsageError(
-      `Unknown profile "${profileName}". Available profiles: ${availableProfiles().join(", ")}`,
-    );
-  }
-  return readJson(profilePath);
 }
 
 function logStep({ dryRun, message }) {
@@ -149,35 +131,6 @@ function copyDirectory({ from, to, label, options }) {
     mkdirSync(dirname(to), { recursive: true });
     cpSync(from, to, { recursive: true, dereference: false });
   }
-}
-
-function copyDirectoryContents({ from, to, label, options }) {
-  ensureDir(to, options);
-
-  for (const entry of readdirSync(from, { withFileTypes: true })) {
-    const sourcePath = join(from, entry.name);
-    const targetPath = join(to, entry.name);
-
-    copyDirectory({
-      from: sourcePath,
-      to: targetPath,
-      label: `${label}/${entry.name}`,
-      options,
-    });
-  }
-}
-
-function shouldInstallLinkTarget({ linkTarget, targetRoot, allToolLinks }) {
-  if (allToolLinks || linkTarget.mode === "always") {
-    return true;
-  }
-
-  if (linkTarget.mode === "if-parent-exists") {
-    const topLevel = linkTarget.dir.split("/")[0];
-    return existsSync(join(targetRoot, topLevel));
-  }
-
-  return false;
 }
 
 function relativeLinkTarget({ fromPath, toPath }) {
@@ -239,33 +192,18 @@ function installToolSkill({ skillName, linkDir, sourceSkillDir, options }) {
   }
 }
 
-function installProfile({ profile, options }) {
+function installSkills(options) {
   const targetRoot = resolve(options.target);
   const runOptions = { ...options, targetRoot };
-  const agentsDir = join(targetRoot, ".agents");
-  const agentsSkillsDir = join(agentsDir, "skills");
+  const agentsSkillsDir = join(targetRoot, ".agents", "skills");
+  const skillNames = includedSkills();
 
   ensureDir(agentsSkillsDir, runOptions);
-  ensureDir(join(agentsDir, "mcps"), runOptions);
-
-  copyDirectoryContents({
-    from: join(packageRoot, "templates", "agents"),
-    to: agentsDir,
-    label: ".agents templates",
-    options: { ...runOptions, overwrite: false },
-  });
-  copyDirectoryContents({
-    from: join(packageRoot, "templates", "mcps"),
-    to: join(agentsDir, "mcps"),
-    label: ".agents/mcps templates",
-    options: { ...runOptions, overwrite: false },
-  });
-
-  for (const skillName of profile.skills) {
+  for (const skillName of skillNames) {
     const sourceSkillDir = join(packageRoot, "skills", skillName);
     const targetSkillDir = join(agentsSkillsDir, skillName);
     if (!existsSync(join(sourceSkillDir, "SKILL.md"))) {
-      throw new UsageError(`Profile references missing skill: ${skillName}`);
+      throw new UsageError(`Included skill is missing SKILL.md: ${skillName}`);
     }
 
     copyDirectory({
@@ -280,21 +218,11 @@ function installProfile({ profile, options }) {
     return;
   }
 
-  for (const linkTarget of profile.toolLinks ?? []) {
-    if (
-      !shouldInstallLinkTarget({
-        allToolLinks: options.allToolLinks,
-        linkTarget,
-        targetRoot,
-      })
-    ) {
-      continue;
-    }
-
-    const linkDir = join(targetRoot, linkTarget.dir);
+  for (const toolDir of toolSkillDirs) {
+    const linkDir = join(targetRoot, toolDir);
     ensureDir(linkDir, runOptions);
 
-    for (const skillName of profile.skills) {
+    for (const skillName of skillNames) {
       installToolSkill({
         linkDir,
         options: runOptions,
@@ -305,13 +233,9 @@ function installProfile({ profile, options }) {
   }
 }
 
-function listProfiles() {
-  for (const profileName of availableProfiles()) {
-    const profile = loadProfile(profileName);
-    console.log(`${profile.name}: ${profile.description}`);
-    for (const skill of profile.skills) {
-      console.log(`  - ${skill}`);
-    }
+function listSkills() {
+  for (const skillName of includedSkills()) {
+    console.log(skillName);
   }
 }
 
@@ -330,10 +254,9 @@ export async function run(argv) {
   }
 
   if (options.list) {
-    listProfiles();
+    listSkills();
     return;
   }
 
-  const profile = loadProfile(options.profile);
-  installProfile({ options, profile });
+  installSkills(options);
 }
