@@ -1,5 +1,3 @@
-![skills-init banner](./assets/banner.png)
-
 # skills-init
 
 Drop a small, opinionated agent skill system into any new project.
@@ -49,11 +47,8 @@ Repo: https://github.com/EzraApple/skills-init
 
 ## What It Installs
 
-Default profile: `core`
-
 ```text
 .agents/
-  README.md
   skills/
     outcome-first-workflows/
       SKILL.md
@@ -74,18 +69,11 @@ Default profile: `core`
       SKILL.md
     writing-skills/
       SKILL.md
-  mcps/
-    README.md
-
 .claude/skills/*   -> .agents/skills/*
 .cursor/skills/*   -> .agents/skills/*
 .codex/skills/*    -> .agents/skills/*
 .opencode/skills/* -> .agents/skills/*
 ```
-
-`.agents/mcps` is intentionally just a placeholder today. The package is built
-around profiles so MCP setup, tool config, and additional skill packs can be
-added later without changing the core installer model.
 
 ## Included Skills
 
@@ -229,19 +217,15 @@ review goes sideways.
 
 - skills live in the repo;
 - tool-specific folders are generated;
-- repeated judgment becomes reusable guidance;
-- future MCP and tool setup has a place to grow.
+- repeated judgment becomes reusable guidance.
 
 ## Repo Structure
 
 ```text
-assets/                 README images and package-visible assets
 bin/                    CLI entrypoint
-profiles/               data-driven install profiles
-scripts/                package validation scripts
 skills/                 source skills copied into target projects
 src/                    installer implementation
-templates/              files written into target projects
+scripts/                package validation scripts
 test/                   Node test runner coverage
 ```
 
@@ -280,16 +264,7 @@ The npm trusted publisher is scoped to `EzraApple/skills-init` and
 Add a skill:
 
 1. Create `skills/<skill-name>/SKILL.md`.
-2. Add the skill name to `profiles/core.json` or a new profile.
-3. Run `npm run check`.
-
-Add future MCP support:
-
-1. Put MCP templates or descriptors under `templates/` or a future `mcps/`
-   source directory.
-2. Add profile entries describing when they install.
-3. Keep writes idempotent.
-4. Never overwrite user config unless `--overwrite` explicitly allows it.
+2. Run `npm run check`.
 
 The installer should stay boring: copy durable source context into `.agents`,
 then generate tool-specific views over that context.

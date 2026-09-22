@@ -1,21 +1,15 @@
 {
   "name": "skills-init",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Bootstrap sensible default agent skills into any repo and wire them across Claude, Cursor, Codex, and OpenCode.",
   "type": "module",
   "bin": {
     "skills-init": "bin/skills-init.js"
   },
   "files": [
-    "assets/",
     "bin/",
     "src/",
-    "scripts/",
-    "skills/",
-    "profiles/",
-    "templates/",
-    "README.md",
-    "LICENSE"
+    "skills/"
   ],
   "repository": {
     "type": "git",
