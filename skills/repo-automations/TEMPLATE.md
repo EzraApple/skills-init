@@ -20,6 +20,7 @@
 - Stay silent or do nothing when:
 - Side effects or approval boundary:
 - Duplicate or state handling, if relevant:
+- Partial-failure recovery, if relevant:
 
 ## Verification
 
