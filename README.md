@@ -1,273 +1,122 @@
 # skills-init
 
-Drop a small, opinionated agent skill system into any new project.
+Install a small set of focused engineering skills into a project, with one
+source of truth shared by Claude, Cursor, Codex, and OpenCode.
 
-`skills-init` creates a single source of truth at `.agents/skills`, installs a
-portable baseline of high-leverage skills, and symlinks those skills into the
-tool-specific folders agents already know how to read:
-
-```text
-.claude/skills/<skill>   -> ../../.agents/skills/<skill>
-.cursor/skills/<skill>   -> ../../.agents/skills/<skill>
-.codex/skills/<skill>    -> ../../.agents/skills/<skill>
-.opencode/skills/<skill> -> ../../.agents/skills/<skill>
-```
-
-The idea is simple: your project carries the actual context once, and every
-agent surface sees the same guidance.
-
-## Quick Start
-
-Install the default skill pack in a repo:
-
-```bash
+```sh
 npx skills-init
 ```
 
-Or preview the writes first:
+The installer copies skills into `.agents/skills` and creates relative links in
+`.claude/skills`, `.cursor/skills`, `.codex/skills`, and `.opencode/skills`.
+Your project owns the installed copies.
 
-```bash
-npx skills-init --dry-run
-```
+## The pack
 
-Useful options:
+| Skill | Use it for |
+| --- | --- |
+| `adversarial-review` | Fresh-context reviewer subagents find issues; separate validator subagents challenge them. Optional references cover change impact and caller-facing interfaces. |
+| `arena` | Fresh subagents produce competing solutions; a separate judge compares them before the parent integrates and verifies one result. |
+| `systematic-debugging` | Causal diagnosis and focused repairs. Optional references cover trustworthy benchmarks and runtime artifacts. |
+| `simplify` | Behavior-preserving cleanup that reduces indirection, duplicate ownership, and hidden state. |
+| `trace-codebase` | Subsystem walkthroughs and ownership questions grounded in representative flows. |
+| `create-verification` | Creating repo-specific instructions that launch, drive, observe, and clean up a real app, CLI, or API. |
+| `prevent-repeat-mistakes` | Replacing recurring corrections with clearer ownership, types, lint, or tests. |
+| `repo-automations` | Repository playbooks, runtime ownership, retry safety, and delivery failures. |
+| `writing-skills` | Creating and maintaining focused skills and supporting resources. |
 
-```bash
-skills-init --target .
-skills-init --target . --dry-run
-skills-init --target . --overwrite
-skills-init --target . --no-links
-skills-init --target . --copy-links
+The skills assume a capable agent. They supply specific decision rules and
+operational knowledge. They do not impose a planning ceremony, fixed reviewer
+panels, model names, or a report template on every task.
+
+Descriptions determine when a skill is considered. The main file contains the
+shared guidance; substantial details load only for the relevant mode. Review
+and diagnosis requests preserve their read-only scope unless fixes are also
+authorized.
+
+## Options
+
+```sh
+skills-init --target /path/to/project
+skills-init --dry-run
+skills-init --overwrite
+skills-init --prune
+skills-init --no-links
+skills-init --copy-links
 skills-init --list
 ```
 
-Package: https://www.npmjs.com/package/skills-init
+- `--target` selects the project directory. The default is the current directory.
+- `--dry-run` describes changes without writing.
+- `--overwrite` replaces existing copies and custom links for currently bundled skills, including local edits.
+- `--prune` removes recognized, unmodified retired skills and their owned tool views.
+- `--no-links` installs only the source copies under `.agents/skills`.
+- `--copy-links` creates tool-specific copies instead of symlinks.
+- `--list` prints the bundled names.
 
-Repo: https://github.com/EzraApple/skills-init
+## Upgrading from 0.2.1
 
-## What It Installs
+Three broad skills have left the default pack:
+
+| Removed name | What replaces it |
+| --- | --- |
+| `outcome-first-workflows` | The agent's normal task execution and your project guidance. |
+| `plan-changes` | The agent's normal planning, with specialized skills used where relevant. |
+| `interface-review` | The interface lens under `adversarial-review/references/interfaces.md`. |
+
+Preview the upgrade before replacing local skill copies:
+
+```sh
+npx skills-init --overwrite --prune --dry-run
+npx skills-init --overwrite --prune
+```
+
+Pruning checks file contents against the exact retired skills shipped in 0.2.1.
+This lets it remove untouched old copies while preserving local edits. It also
+preserves directories with extra files, custom links, and modified tool copies,
+and reports what needs manual review. It does not remove unrelated skills.
+Without `--prune`, retired installations remain and the installer reports them.
+
+The installer refuses to write through symlinked skill-parent directories. Use
+project-local directories, or `--no-links` to leave tool directories alone.
+
+## Development
+
+This package has no runtime dependencies. Its layout is:
 
 ```text
-.agents/
-  skills/
-    outcome-first-workflows/
-      SKILL.md
-    trace-codebase/
-      SKILL.md
-    plan-changes/
-      SKILL.md
-    systematic-debugging/
-      SKILL.md
-    repo-automations/
-      SKILL.md
-      TEMPLATE.md
-    adversarial-review/
-      SKILL.md
-    interface-review/
-      SKILL.md
-    simplify/
-      SKILL.md
-    writing-skills/
-      SKILL.md
-.claude/skills/*   -> .agents/skills/*
-.cursor/skills/*   -> .agents/skills/*
-.codex/skills/*    -> .agents/skills/*
-.opencode/skills/* -> .agents/skills/*
+bin/          CLI entrypoint
+src/          installer and retirement metadata
+skills/       bundled skills and conditional references
+scripts/      metadata and reference checks
+test/         installer and tooling tests
 ```
 
-## Included Skills
+From this checkout:
 
-### `outcome-first-workflows`
-
-Finish substantial work against an observable outcome, explicit constraints,
-and claim-matched evidence.
-
-Includes:
-
-- compact outcome, non-goal, and stopping-condition contracts;
-- witness selection for user flows, hidden state, code contracts, performance,
-  deployments, and external artifacts;
-- bounded parallel-work rules for runtimes that support it;
-- honest completion checks that distinguish activity from proof.
-
-### `trace-codebase`
-
-Map an unfamiliar subsystem from real code without producing an encyclopedia.
-
-Includes:
-
-- scope and entrypoint discovery;
-- representative data, control, state, and error-flow tracing;
-- selective history and provenance rules;
-- boundary maps, change seams, and a prioritized reading order.
-
-### `plan-changes`
-
-Turn broad implementation or refactor requests into the smallest
-decision-complete plan.
-
-Includes:
-
-- current-boundary and constraint discovery;
-- direct-versus-durable approach comparison;
-- explicit invariants and non-goals;
-- independently verifiable steps with claim-matched witnesses;
-- rollout, rollback, compatibility, and risk coverage when relevant.
-
-### `systematic-debugging`
-
-Prove root causes before proposing or implementing fixes.
-
-Includes:
-
-- exact symptom and reproduction framing;
-- backward causal tracing and falsifiable hypothesis ledgers;
-- precise root-cause standards;
-- smallest-owning-boundary fixes;
-- verification against the original failure surface.
-
-### `repo-automations`
-
-Route repository-owned scheduled, event-driven, webhook, and agent-run
-automations without imposing a specific scheduler or workflow platform.
-
-Includes:
-
-- a lightweight boundary between repo logic and runtime orchestration;
-- routing to repo-local, frontmatter-free automation playbooks;
-- judgment for choosing code, workflow configuration, or an agent playbook;
-- proportional testing, migration, and failure-layer guidance;
-- a small playbook template whose irrelevant sections should be deleted.
-
-### `adversarial-review`
-
-High-scrutiny independent review for code, PRs, changed files, plans, or
-specific paths.
-
-Includes:
-
-- scope selection for PRs, diffs, files, and local changes;
-- reviewer lane selection based on risk and user intent;
-- correctness, security, architecture, interface, test/ops, and UX lane
-  templates;
-- clustering findings by root cause;
-- validator passes whose job is to kill weak findings;
-- an iterative hardening loop for fix, check, and rerun cycles;
-- final report shape with verdict, action items, findings, and coverage.
-
-Use this when you want a skeptical second opinion, not a polite rubber stamp.
-
-### `interface-review`
-
-Caller-focused review for APIs, exported functions, service methods, hooks,
-component props, schemas, commands, events, and extension points.
-
-Includes:
-
-- duplicate-boundary and hidden-side-effect detection;
-- mode, option, and domain-input shape review;
-- provider and implementation-leakage checks;
-- concrete replacement shapes with compatibility and migration notes.
-
-### `writing-skills`
-
-The meta-skill for creating and maintaining useful skills.
-
-Includes:
-
-- how to define a skill's job, trigger phrases, audience, and output;
-- where skills should live: `.agents/skills`, tool links, always-on guidance,
-  scripts, or runtime workspace directories;
-- frontmatter rules for discoverable `name` and `description`;
-- guidance for progressive disclosure with `references/`, `scripts/`,
-  `templates/`, and `assets/`;
-- validation levels from lightweight checks to rigorous pressure scenarios;
-- anti-patterns like narrative skills, workflow-hidden descriptions, and
-  untested routing changes.
-
-Use this when you are turning repeated agent behavior into durable project
-context.
-
-### `simplify`
-
-Deletion-first code simplification for agents that tend to add wrappers,
-helpers, and speculative abstractions.
-
-Includes:
-
-- direct-version-first thinking;
-- single-use helper inlining;
-- guard-clause and flattening guidance;
-- deriving values instead of synchronizing state;
-- collapsing parallel code paths;
-- one-name-per-concept naming discipline;
-- rules for passing objects whole and deleting translation theater;
-- near-miss guidance for cases where added lines are still the simpler choice.
-
-Use this after implementation or during review to ask: what can we delete
-without losing clarity or safety?
-
-## Why This Exists
-
-Agent tools are getting better, but new projects still start cold. The same
-instructions get pasted into prompts, copied between repos, or forgotten until a
-review goes sideways.
-
-`skills-init` makes project context explicit and portable:
-
-- skills live in the repo;
-- tool-specific folders are generated;
-- repeated judgment becomes reusable guidance.
-
-## Repo Structure
-
-```text
-bin/                    CLI entrypoint
-skills/                 source skills copied into target projects
-src/                    installer implementation
-scripts/                package validation scripts
-test/                   Node test runner coverage
-```
-
-## Local Development
-
-Run from this checkout:
-
-```bash
-node bin/skills-init.js --target /path/to/project
-```
-
-Run checks:
-
-```bash
+```sh
+npm ci
 npm run check
 ```
 
-This validates skill frontmatter, runs installer tests, and verifies package
-contents with `npm pack --dry-run`.
+This validates skill metadata and local references, checks installer behavior,
+and verifies the npm package contents.
 
-## Releasing
+The published package includes `bin/`, `src/`, and `skills/`. Development tooling
+stays in this repository.
 
-Releases publish from GitHub Actions through npm trusted publishing. The tag
-must match the version in `package.json`.
+## Release
 
-```bash
-npm version patch
-git push origin main --follow-tags
-```
+GitHub Actions publishes through npm trusted publishing. The tag must match
+`package.json`. After review and validation, use the appropriate version bump
+and push the release tag through the repository's normal process.
 
-The npm trusted publisher is scoped to `EzraApple/skills-init` and
-`.github/workflows/publish.yml`; no npm token is stored in GitHub.
+## Design sources
 
-## Extending
-
-Add a skill:
-
-1. Create `skills/<skill-name>/SKILL.md`.
-2. Run `npm run check`.
-
-The installer should stay boring: copy durable source context into `.agents`,
-then generate tool-specific views over that context.
+The pack draws on [pstack](https://github.com/cursor/plugins/tree/main/pstack)
+and current [OpenAI skill guidance](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra).
+Keep additions only when they supply useful knowledge or change a demonstrated
+decision. Prefer structural enforcement over accumulating prompt rules.
 
 ## License
 

@@ -1,16 +1,17 @@
 import {
   cpSync,
   existsSync,
-  lstatSync,
   mkdirSync,
   readFileSync,
   readdirSync,
   readlinkSync,
+  realpathSync,
   rmSync,
   symlinkSync,
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findEntry, hasOwnedParents, planRetiredSkillPrune } from "./retired-skills.js";
 
 const packageRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const toolSkillDirs = [
@@ -40,6 +41,7 @@ Usage:
 Options:
   --target <dir>       Project directory to scaffold. Defaults to cwd.
   --overwrite          Replace existing installed skill directories.
+  --prune              Remove unmodified retired 0.2.1 skills and tool views.
   --dry-run            Print planned writes without changing files.
   --no-links           Copy skills into .agents only; do not create tool links.
   --copy-links         Copy skills into tool folders instead of symlinking.
@@ -55,6 +57,7 @@ function parseArgs(argv) {
     dryRun: false,
     links: true,
     overwrite: false,
+    prune: false,
     target: process.cwd(),
   };
 
@@ -75,6 +78,8 @@ function parseArgs(argv) {
       options.target = value;
     } else if (arg === "--overwrite") {
       options.overwrite = true;
+    } else if (arg === "--prune") {
+      options.prune = true;
     } else if (arg === "--dry-run") {
       options.dryRun = true;
     } else if (arg === "--no-links") {
@@ -109,7 +114,7 @@ function ensureDir(path, options) {
 }
 
 function copyDirectory({ from, to, label, options }) {
-  if (existsSync(to)) {
+  if (findEntry(to)) {
     if (!options.overwrite) {
       logStep({
         dryRun: options.dryRun,
@@ -156,8 +161,8 @@ function installToolSkill({ skillName, linkDir, sourceSkillDir, options }) {
     toPath: sourceSkillDir,
   });
 
-  if (existsSync(linkPath)) {
-    const stat = lstatSync(linkPath);
+  const stat = findEntry(linkPath);
+  if (stat) {
     if (!stat.isSymbolicLink()) {
       throw new UsageError(
         `${linkPath} already exists and is not a symlink. Move it aside or rerun with --copy-links.`,
@@ -170,6 +175,12 @@ function installToolSkill({ skillName, linkDir, sourceSkillDir, options }) {
         message: `keep link ${relative(options.targetRoot, linkPath)} -> ${expectedTarget}`,
       });
       return;
+    }
+
+    if (!options.overwrite) {
+      throw new UsageError(
+        `${linkPath} points elsewhere. Rerun with --overwrite to replace this custom link.`,
+      );
     }
 
     logStep({
@@ -192,11 +203,40 @@ function installToolSkill({ skillName, linkDir, sourceSkillDir, options }) {
   }
 }
 
+function updateRetiredSkills(options) {
+  const { targetRoot } = options;
+  const retired = planRetiredSkillPrune(targetRoot, toolSkillDirs);
+  if (options.prune) {
+    for (const { path, reason } of retired.preserved) {
+      logStep({ dryRun: options.dryRun, message: `preserve retired ${relative(targetRoot, path)}: ${reason}` });
+    }
+    for (const { path, kind } of retired.actions) {
+      logStep({ dryRun: options.dryRun, message: `remove retired ${kind}: ${relative(targetRoot, path)}` });
+      if (!options.dryRun) {
+        rmSync(path, { recursive: kind !== "link", force: true });
+      }
+    }
+  } else if (retired.found.length > 0) {
+    console.log(`Retired skills found: ${retired.found.join(", ")}. To remove only unmodified 0.2.1 copies, run skills-init --target <project> --prune.`);
+  }
+}
+
 function installSkills(options) {
-  const targetRoot = resolve(options.target);
+  const requestedRoot = resolve(options.target);
+  const targetRoot = existsSync(requestedRoot) ? realpathSync(requestedRoot) : requestedRoot;
   const runOptions = { ...options, targetRoot };
   const agentsSkillsDir = join(targetRoot, ".agents", "skills");
   const skillNames = includedSkills();
+
+  const parentDirs = [".agents/skills", ...(options.links ? toolSkillDirs : [])];
+  for (const directory of parentDirs) {
+    const probe = join(targetRoot, directory, "unused");
+    if (!hasOwnedParents(targetRoot, probe)) {
+      throw new UsageError(
+        `${directory} has a symlinked or non-directory parent. Use a project-local skills directory or --no-links for tool directories.`,
+      );
+    }
+  }
 
   ensureDir(agentsSkillsDir, runOptions);
   for (const skillName of skillNames) {
@@ -215,6 +255,7 @@ function installSkills(options) {
   }
 
   if (!options.links) {
+    updateRetiredSkills(runOptions);
     return;
   }
 
@@ -231,6 +272,8 @@ function installSkills(options) {
       });
     }
   }
+
+  updateRetiredSkills(runOptions);
 }
 
 function listSkills() {

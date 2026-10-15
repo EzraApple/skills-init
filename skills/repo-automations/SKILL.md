@@ -1,54 +1,33 @@
 ---
 name: repo-automations
-description: Use when creating, migrating, running, reviewing, or debugging repository-owned recurring, scheduled, webhook, event-driven, or agent-run automations; deciding whether behavior belongs in code, a playbook, or an external scheduler; or establishing a lightweight convention for automation instructions. Routes work to local playbooks and the owning runtime. Do not use for personal reminders or unrelated host-app automations.
+description: Create or change repository-owned scheduled, webhook, or agent-run automations. Use for their playbooks, runtime boundaries, and delivery failures.
 ---
 
-# Repo automations
+# Repository automations
 
-Use this skill as a router and ownership guide, not as a mandatory automation framework. Preserve the repository's established conventions unless they are the problem.
+Find the existing playbook, code, workflow, and runtime before changing the
+automation. Establish which system owns the trigger, deployed revision,
+credentials, execution state, and delivery. Repository configuration alone
+cannot establish what actually ran.
 
-## Orient
+Keep deterministic transformation and transport in code or workflow
+configuration. Use an agent playbook for work that needs investigation or
+judgment. Keep scheduling and runtime grants with their owning host. Preserve
+working conventions rather than introducing a new automation framework.
 
-1. Read the repository's agent guidance and automation documentation.
-2. Locate the actual automation surfaces: playbooks, scripts, workflow files, scheduler configuration, webhook handlers, and run records.
-3. If the request names an automation, find and read its playbook before acting. Search this directory and the repository rather than assuming a fixed layout.
-4. Confirm which system owns the trigger, checkout or deployed version, credentials, execution, and delivery. Do not infer runtime state from repository files alone.
+When the host can read the repository, its prompt should point to the playbook
+available in that runtime's checkout. Avoid a second copy of the procedure.
+Use ordinary Markdown for individual routines so each one does not become a
+separate discoverable skill. [TEMPLATE.md](TEMPLATE.md) is a starting point for
+new routines; omit fields that do not help.
 
-## Choose the owning layer
+For retries or external writes, define a stable deduplication key, the single
+owner of each write, and the state to read before retrying. A partial operation
+needs a recovery or compensation path. During migrations, prevent old and new
+writers from overlapping unless duplicate execution is safe. A playbook does
+not grant permission to send messages or make other external changes.
 
-Use the smallest split that fits the existing system:
-
-- Keep reviewable behavior, rules, and validation in the repository when practical.
-- Keep timing, event bindings, runtime identity, and secret grants in the scheduler or automation host when that is where they naturally belong.
-- Prefer code or workflow configuration for deterministic transformation and transport.
-- Prefer an agent playbook when the work requires investigation, judgment, synthesis, or flexible tool use.
-
-Do not migrate working provider-owned logic merely to conform to this pattern.
-
-## Route through playbooks
-
-When a repository keeps automation playbooks beside this skill, use ordinary, frontmatter-free Markdown such as `<slug>.md`. This keeps the root skill discoverable without advertising every routine as an independent skill.
-
-For a new repeated or consequential automation, start from [TEMPLATE.md](TEMPLATE.md). Keep only the sections that improve execution; a short automation may need only a paragraph and a procedure.
-
-Keep scheduler prompts thin when the host can read repository files: point to the playbook instead of duplicating its behavior. Add automation-specific trigger terms to this skill's description only when interactive discovery actually needs them.
-
-## Work proportionally
-
-- Before changing or running an automation, understand its inputs, side effects, permission boundary, and current state.
-- Test through the cheapest witness that proves the behavior. Use a dry run or manual invocation when duplication or external writes matter.
-- If the runtime clones or deploys the repository, make the referenced playbook available to that runtime before expecting a scheduled run to use it.
-- During migrations, avoid overlapping old and new writers unless duplicate execution is explicitly safe.
-- Verify the real output or run record; configuration alone proves intent, not execution.
-
-## Debug the owning layer
-
-Check only the layers relevant to the failure:
-
-1. Did the trigger fire?
-2. Did the intended version run?
-3. Were credentials and tools available?
-4. Did the procedure select or transform the right data?
-5. Did the destination accept and expose the result?
-
-Fix the layer that owns the failure. Do not compensate for scheduler, access, or delivery problems by making the playbook more elaborate.
+Check the real output and run record. For failures, isolate whether the trigger
+fired, the correct revision ran, access was available, the procedure selected the
+right data, and the destination accepted the result. Fix the owning layer; do
+not add prose to compensate for a scheduler or access problem.

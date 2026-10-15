@@ -1,7 +1,7 @@
 {
   "name": "skills-init",
-  "version": "0.2.1",
-  "description": "Bootstrap sensible default agent skills into any repo and wire them across Claude, Cursor, Codex, and OpenCode.",
+  "version": "0.3.0",
+  "description": "Install focused engineering skills with shared context for Claude, Cursor, Codex, and OpenCode.",
   "type": "module",
   "bin": {
     "skills-init": "bin/skills-init.js"
@@ -42,5 +42,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "yaml": "2.9.1"
   }
 }
